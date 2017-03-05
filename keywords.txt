@@ -25,3 +25,5 @@ update	KEYWORD2
 #######################################
 # Variables/Volatiles (LITERAL2)
 #######################################
+PITCH LITERAL2
+ROLL  LITERAL2
