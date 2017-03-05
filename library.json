@@ -1,0 +1,12 @@
+{
+  "name": "MPU6050",
+  "keywords": "imu,mpu6050,mpu,gyro,accelerometer",
+  "description": "MPU6050 -> Quaternion",
+  "repository":
+  {
+    "type": "git",
+    "url": "LINK"
+  },
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}
