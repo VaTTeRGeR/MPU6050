@@ -9,10 +9,7 @@
 
 class MPU6050 {
 	public:
-		MPU6050(uint16_t _samplerate){
-			samplerate = _samplerate;
-			wait_target = 1000/samplerate;
-		}
+		MPU6050(uint16_t x):samplerate(x){}
 		
 		void setup();
 		void update();

@@ -40,7 +40,8 @@ void MPU6050::setup() {
   
   still_length_acc /= cal_rounds;
 
-  wait_elapsed = 0;
+  wait_target	= 1000/samplerate;
+  wait_elapsed	= 0;
 }
 
 void MPU6050::update() {
