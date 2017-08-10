@@ -68,8 +68,8 @@ void MPU6050::update() {
     
     //Accelerometer angle calculations
     acc_total_vector = sqrt( (acc_x*acc_x) + (acc_y*acc_y) + (acc_z*acc_z) ); //Calculate the total accelerometer vector
-    angle_pitch_acc = asin((float)acc_y / acc_total_vector)*  Q_RADDEG;    //Calculate the pitch angle
-    angle_roll_acc = asin((float)acc_x / acc_total_vector) * -Q_RADDEG;    //Calculate the roll angle
+    angle_pitch_acc = asin((float)acc_y / acc_total_vector)*  -Q_RADDEG;    //Calculate the pitch angle
+    angle_roll_acc = asin((float)acc_x / acc_total_vector) *  Q_RADDEG;    //Calculate the roll angle
     
     //Offset
     //angle_pitch_acc -= 0.0;                                              //Accelerometer calibration value for pitch
@@ -79,16 +79,36 @@ void MPU6050::update() {
       angle_pitch = angle_pitch_acc;                                     //Set the gyro pitch angle equal to the accelerometer pitch angle 
       angle_roll = angle_roll_acc;                                       //Set the gyro roll angle equal to the accelerometer roll angle 
       gyro_angles_set = true;                                            //Set the IMU started flag
-    } else if((((float)still_length_acc) * 1.025) > ((float)acc_total_vector)
-           && (((float)still_length_acc) * 0.975) < ((float)acc_total_vector)) {
-      angle_pitch = angle_pitch * 0.9 + angle_pitch_acc * 0.1;       //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
-      angle_roll = angle_roll * 0.9 + angle_roll_acc * 0.1;          //Correct the drift of the gyro roll angle with the accelerometer roll angle
+    } else {
+		float mix, mix_i;
+		
+		float d_pitch = angle_pitch_acc - angle_pitch;
+		float d_roll  = angle_roll_acc  - angle_roll;
+		float d_max = max(abs(d_pitch),abs(d_roll));
+		
+		mix = -d_max*(0.01/20.0)+0.01;
+		mix = constrain(mix, 0.0001, 0.01);
+		mix_i = 1.0 - mix;
+		
+		angle_pitch	= angle_pitch * mix_i + angle_pitch_acc * mix;       //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
+		angle_roll	= angle_roll  * mix_i + angle_roll_acc  * mix;          //Correct the drift of the gyro roll angle with the accelerometer roll angle
+		
+		/*Serial.print("ar ");
+		Serial.println(angle_roll_acc,1);
+		Serial.print("ap ");
+		Serial.println(angle_pitch_acc,1);
+		Serial.print("d ");
+		Serial.println(d_max,1);
+		Serial.print("m ");
+		Serial.println(mix,4);*/
     }
   
+	angle_pitch_acc_prev = angle_pitch_acc;
+	angle_roll_acc_prev = angle_roll_acc;
     
     //To dampen the pitch and roll angles a complementary filter is used
-    PITCH	=	angle_pitch_output	=	angle_pitch_output	* 0.75 + angle_pitch	* 0.25;   //Take 50% of the output pitch value and add 50% of the raw pitch value
-    PITCH	=	angle_roll_output	=	angle_roll_output	* 0.75 + angle_roll		* 0.25;      //Take 50% of the output roll value and add 50% of the raw roll value
+    PITCH	=	angle_pitch_output	=	-1.0*(angle_pitch_output	* 0.25 + angle_pitch	* 0.75);   //Take 50% of the output pitch value and add 50% of the raw pitch value
+    ROLL	=	angle_roll_output	=	angle_roll_output	* 0.25 + angle_roll		* 0.75;      //Take 50% of the output roll value and add 50% of the raw roll value
   
     //PITCH	=	angle_pitch_output	=	angle_pitch;
     //ROLL	=	angle_roll_output	=	angle_roll;
@@ -113,13 +133,13 @@ void MPU6050::readFromMPU() {
     
 	//READS IN THIS ORDER: AX, AY, AZ | TEMP | GX, GY, GZ
   
-	acc_x = (int16_t)(Wire.read()<<8|Wire.read());                                  //Add the low and high byte to the acc_x variable
-	acc_y = (int16_t)(Wire.read()<<8|Wire.read());                                  //Add the low and high byte to the acc_y variable
+	acc_y = (int16_t)(Wire.read()<<8|Wire.read());                                  //Add the low and high byte to the acc_x variable
+	acc_x = (int16_t)(Wire.read()<<8|Wire.read());                                  //Add the low and high byte to the acc_y variable
 	acc_z = (int16_t)(Wire.read()<<8|Wire.read());                                  //Add the low and high byte to the acc_z variable
 
 	temperature = (int16_t)(Wire.read()<<8|Wire.read());                            //Add the low and high byte to the temperature variable
   
-	gyro_x = (int16_t)(Wire.read()<<8|Wire.read());                                 //Add the low and high byte to the gyro_x variable
-	gyro_y = (int16_t)(Wire.read()<<8|Wire.read());                                 //Add the low and high byte to the gyro_y variable
+	gyro_y = (int16_t)(Wire.read()<<8|Wire.read());                                 //Add the low and high byte to the gyro_x variable
+	gyro_x = (int16_t)(Wire.read()<<8|Wire.read());                                 //Add the low and high byte to the gyro_y variable
 	gyro_z = (int16_t)(Wire.read()<<8|Wire.read());                                 //Add the low and high byte to the gyro_z variable
 }

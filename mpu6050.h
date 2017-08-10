@@ -31,6 +31,7 @@ class MPU6050 {
 		float angle_pitch, angle_roll;
 		float angle_pitch_output, angle_roll_output;
 		float angle_roll_acc, angle_pitch_acc;
+		float angle_roll_acc_prev, angle_pitch_acc_prev;
 
 		int16_t temperature;
 
